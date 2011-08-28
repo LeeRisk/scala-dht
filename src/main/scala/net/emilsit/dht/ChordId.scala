@@ -32,6 +32,53 @@ final class ChordId(private val id: BigInt) {
       case _ => false
     }
   override def hashCode(): Int = id.hashCode()
+
+  /*
+   * Range checking
+   */
+  private def betweenHelper(a: ChordId, b: ChordId,
+                            equal: AnyRef => Boolean,
+                            lower: BigInt => Boolean,
+                            upper: BigInt => Boolean) =
+    if (a == b) {
+      equal(a)
+    } else if (a.id < b.id) { // a "normal" interval
+      lower(a.id) && upper(b.id)
+    } else { // an interval that spans 0
+      lower(a.id) || upper(b.id)
+    }
+
+  /**
+    * @param a the left bound of the range (non-inclusive)
+    * @param b the right bound of the range (non-inclusive)
+    * @return true if this is between (a, b) on the circle
+    */
+  def between(a: ChordId, b: ChordId): Boolean =
+    betweenHelper(a, b, id.!=(_), id.>(_), id.<(_))
+
+  /**
+   * @param a the left bound of the range (inclusive)
+   * @param b the right bound of the range (non-inclusive)
+   * @return true if this is between [a, b) on the circle
+   */
+  def betweenLeftIncl(a: ChordId, b: ChordId): Boolean =
+    betweenHelper(a, b, id.==(_), id.>=(_), id.<(_))
+
+  /**
+   * @param a the left bound of the range (non-inclusive)
+   * @param b the right bound of the range (inclusive)
+   * @return true if this is between (a, b] on the circle
+   */
+  def betweenRightIncl(a: ChordId, b: ChordId): Boolean =
+    betweenHelper(a, b, id.==(_), id.>(_), id.<=(_))
+
+  /**
+   * @param a the left bound of the range (inclusive)
+   * @param b the right bound of the range (inclusive)
+   * @return true if this is between [a, b] on the circle
+   */
+  def betweenBothIncl(a: ChordId, b: ChordId): Boolean =
+    betweenHelper(a, b, id.==(_), id.>=(_), id.<=(_))
 }
 
 object ChordId {
